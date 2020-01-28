@@ -8,7 +8,8 @@
 
 import React from 'react';
 import MapView, {Marker, Callout, Polyline} from 'react-native-maps';
-
+// import Dialog, {DialogContent, SlideAnimation} from 'react-native-popup-dialog';
+import Modal from 'react-native-modal';
 import {
   StyleSheet,
   View,
@@ -16,7 +17,8 @@ import {
   Dimensions,
   TouchableOpacity,
   Image,
-  Alert,
+  StatusBar,
+  TextInput,
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 const {width, height} = Dimensions.get('window');
@@ -54,6 +56,36 @@ const listOfVets = [
     },
     vetIcon: require('./assets/catmarker1.png'),
   },
+  {
+    vetName: 'vet4',
+    description: 'vet number 1 ready to go ',
+    vetAddress: {
+      latitude: 48.862438,
+      longitude: 2.289015,
+    },
+    vetIcon: require('./assets/catmarker1.png'),
+  },
+  {
+    vetName: 'vet5',
+    description: 'vet number 1 ready to go ',
+    vetAddress: {
+      latitude: 31.624335,
+      longitude: -7.993801,
+    },
+    vetIcon: require('./assets/catmarker1.png'),
+  },
+  {
+    vetName: 'vet6',
+    description: 'vet number 1 ready to go ',
+    vetAddress: {
+      latitude:  32.897083,
+      longitude: -6.914188,
+    },
+    vetIcon: require('./assets/catmarker1.png'),
+  }
+
+  
+
 ];
 
 const ASPECT_RATIO = width / height;
@@ -66,11 +98,20 @@ class App extends React.Component {
     super(props);
     this.marker = [];
     this.state = {
+      selectedVet: listOfVets[0],
+      isModalVisible: false,
+      tintNearMeColor: '#233F6C',
       listOffRoutes: [],
       query: '',
       mapType: 'standard',
       coords: [],
       showCalloutView: true,
+      userLocation: {
+        latitude: LATITUDE,
+        longitude: LONGITUDE,
+        latitudeDelta: LATITUDE_DELTA,
+        longitudeDelta: LONGITUDE_DELTA,
+      },
       region: {
         latitude: LATITUDE,
         longitude: LONGITUDE,
@@ -86,9 +127,9 @@ class App extends React.Component {
     AppCalls = listOfVets.map((vet, index) => {
       return fetch(
         'https://api.tomtom.com/routing/1/calculateRoute/' +
-          this.state.region.latitude +
+          this.state.userLocation.latitude +
           '%2C' +
-          this.state.region.longitude +
+          this.state.userLocation.longitude +
           '%3A' +
           vet.vetAddress.latitude +
           '%2C' +
@@ -101,9 +142,12 @@ class App extends React.Component {
     Promise.all(AppCalls)
       .then(values => Promise.all(values.map(value => value.json())))
       .then(finalVals => {
-        this.setState({listOffRoutes: finalVals}, () => {
-          this.compareAllRoutes(this.state.listOffRoutes);
-        });
+        this.setState(
+          {listOffRoutes: finalVals, region: this.state.userLocation},
+          () => {
+            this.compareAllRoutes(this.state.listOffRoutes);
+          },
+        );
         console.log('list of routes : ', finalVals);
       });
   };
@@ -115,7 +159,15 @@ class App extends React.Component {
         listOffRoutes[index].routes[0].summary.lengthInMeters,
       );
     }
-    console.log('minmum :', Math.min(...distanceValues));
+    var indexOfMaxValue = distanceValues.reduce(
+      (iMax, x, i, arr) => (x < arr[iMax] ? i : iMax),
+      0,
+    );
+    this.setState({
+      coords: listOffRoutes[indexOfMaxValue].routes[0].legs[0].points,
+    });
+    console.log('index : ', indexOfMaxValue);
+    // console.log('minmum :', Math.min(...distanceValues));
   };
   // fetch directions and decode polylines
   async getDirections(startLoc, destinationLoc) {
@@ -147,6 +199,12 @@ class App extends React.Component {
         // console.log(initialPosition);
         console.log('hello', initialPosition);
         this.setState({
+          userLocation: {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            latitudeDelta: 0.04,
+            longitudeDelta: 0.05,
+          },
           region: {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
@@ -163,9 +221,9 @@ class App extends React.Component {
   async getDirectionsTomTom(dist) {
     let url =
       'https://api.tomtom.com/routing/1/calculateRoute/' +
-      this.state.region.latitude +
+      this.state.userLocation.latitude +
       '%2C' +
-      this.state.region.longitude +
+      this.state.userLocation.longitude +
       '%3A' +
       dist.latitude +
       '%2C' +
@@ -199,12 +257,7 @@ class App extends React.Component {
 
   onRegionChange = region => {
     this.setState({
-      region: {
-        latitude: region.latitude,
-        longitude: region.longitude,
-        latitudeDelta: 0.04,
-        longitudeDelta: 0.05,
-      },
+      region: region,
     });
     console.log(region);
   };
@@ -229,19 +282,28 @@ class App extends React.Component {
   render() {
     return (
       <View style={styles.container}>
+        <StatusBar backgroundColor="#233F6D" barStyle="light-content" />
         <MapView
           // onRegionChange={region => this.onRegionChange(region)}
           style={styles.map}
           mapType={this.state.mapType}
-          // initialRegion={this.state.region}
-          region={{
+          initialRegion={{
             latitude: this.state.region.latitude,
             longitude: this.state.region.longitude,
             latitudeDelta: LATITUDE_DELTA,
             longitudeDelta: LONGITUDE_DELTA,
-          }}>
+          }}
+          region={this.state.region}
+          onRegionChangeComplete={this.onRegionChange}
+          // region={{
+          //   latitude: this.state.region.latitude,
+          //   longitude: this.state.region.longitude,
+          //   latitudeDelta: LATITUDE_DELTA,
+          //   longitudeDelta: LONGITUDE_DELTA,
+          // }}
+        >
           <Marker
-            coordinate={this.state.region}
+            coordinate={this.state.userLocation}
             title={'my place'}
             description={'hello world hello word hello world'}
             image={require('./assets/marker.png')}
@@ -260,6 +322,7 @@ class App extends React.Component {
                 onCalloutPress={() => {
                   this.marker[index].hideCallout();
                   this.getDirectionsTomTom(vet.vetAddress);
+                  this.setState({isModalVisible: true,selectedVet : vet});
                 }}
                 title={vet.vetName}
                 description={'this is vet hello hello'}
@@ -317,69 +380,162 @@ class App extends React.Component {
             strokeWidth={4}
           />
         </MapView>
+        <View style={styles.topSearchBar}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+
+              height: 40,
+              borderColor: 'white',
+              borderWidth: 1,
+              flex: 4,
+              borderRadius: 20,
+              backgroundColor: 'white',
+              marginRight: 20,
+              paddingLeft: 10,
+            }}>
+            <TextInput
+              style={{width: '80%', color: '#233F6C'}}
+              placeholder="Chercher un vétérinaire..."
+              onChangeText={text => this.setState({text})}
+              value={this.state.text}></TextInput>
+            <TouchableOpacity style={{marginRight: 10}}>
+              <Image
+                source={require('./assets/searchIcon.png')}
+                resizeMode={'center'}
+                tintColor={'#233F6C'}
+                style={[styles.filterIconStyle]}></Image>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={{
+              // backgroundColor: 'red',
+              justifyContent: 'center',
+              alignItems: 'center',
+              alignContent: 'flex-end',
+              flex: 1,
+            }}
+            onPress={() => {
+              this.setState({isModalVisible: true});
+              console.log('hello world');
+            }}>
+            <Image
+              source={require('./assets/fitlerIcon.png')}
+              resizeMode={'center'}
+              tintColor={'white'}
+              style={styles.filterIconStyle}></Image>
+          </TouchableOpacity>
+        </View>
         <View
           style={{
-            flexDirection: 'row',
-            backgroundColor: '#233F6C',
+            // flexDirection: 'row',
+            justifyContent: 'center',
+            // backgroundColor: '#233F6C',
             alignItems: 'center',
             position: 'absolute',
             bottom: 0,
-            shadowColor: '#000',
-            shadowOffset: {
-              width: 0,
-              height: 12,
-            },
-            shadowOpacity: 0.58,
-            shadowRadius: 16.0,
-
-            elevation: 24,
+            right: 10,
           }}>
-          <View style={{flex: 4, flexDirection: 'row'}}>
-            <TouchableOpacity
-              onPress={() => {
-                this.state.mapType == 'standard'
-                  ? this.setState({mapType: 'satellite'})
-                  : this.setState({mapType: 'standard'});
-              }}
-              style={styles.nearMeBtn}>
-              {this.state.mapType == 'standard' ? (
-                <Image
-                  source={require('./assets/satelite.png')}
-                  // tintColor="#031349"
-                  style={styles.iconMapStyle}
-                  resizeMode={'cover'}></Image>
-              ) : (
-                <Image
-                  source={require('./assets/plan.png')}
-                  style={styles.iconMapStyle}
-                  // tintColor="#031349"
-                  resizeMode={'cover'}></Image>
-              )}
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={() => {
+              this.state.mapType == 'standard'
+                ? this.setState({
+                    mapType: 'satellite',
+                    tintNearMeColor: 'white',
+                  })
+                : this.setState({
+                    mapType: 'standard',
+                    tintNearMeColor: '#233F6C',
+                  });
+            }}>
+            {this.state.mapType == 'standard' ? (
+              <Image
+                source={require('./assets/satelite.png')}
+                // tintColor="#031349"
+                style={styles.iconMapStyle}
+                resizeMode={'cover'}></Image>
+            ) : (
+              <Image
+                source={require('./assets/plan.png')}
+                style={styles.iconMapStyle}
+                // tintColor="#031349"
+                resizeMode={'cover'}></Image>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => this.getData(listOfVets)}
+            style={styles.iconMapStyle}>
+            <Image
+              source={require('./assets/nearMe.png')}
+              tintColor={this.state.tintNearMeColor}
+              resizeMode={'contain'}></Image>
+          </TouchableOpacity>
+        </View>
+        {/* <Dialog
+          style={{
+            justifyContent: 'flex-end',
+            margin: 0,
+            padding: 0,
+            alignItems: 'center',
+            flex: 1,
+            // borderRadius: 30,
+          }}
+          dialogAnimation={
+            new SlideAnimation({
+              slideFrom: 'bottom',
+            })
+          }
+          visible={this.state.visible}
+          onTouchOutside={() => {
+            this.setState({visible: false});
+          }}>
+          <DialogContent>
+            <View>
+              <Text>hello world</Text>
+            </View>
+          </DialogContent>
+        </Dialog> */}
+        <Modal
+          isVisible={this.state.isModalVisible}
+          useNativeDriver={true}
+          onBackdropPress={() => {
+            this.setState({isModalVisible: false});
+          }}
+          style={{
+            justifyContent: 'flex-end',
+            margin: 0,
+            padding: 0,
+            alignItems: 'center',
+            // flex: 1,
+            height: '40%',
+            // borderRadius: 30,
+          }}>
           <View
             style={{
-              flex: 1,
-              // backgroundColor: 'green',
+              backgroundColor: 'white',
+              width: '100%',
               justifyContent: 'center',
               alignItems: 'center',
             }}>
-            <TouchableOpacity
-              onPress={() => this.getData(listOfVets)}
-              style={styles.nearMeBtn}>
-              <Image
-                source={require('./assets/nearMe.png')}
-                tintColor="white"
-                resizeMode={'cover'}></Image>
-            </TouchableOpacity>
+            <View>
+              <Image source={this.state.selectedVet.vetIcon}></Image>
+              <Text>{this.state.selectedVet.vetName}</Text>
+            </View>
           </View>
-        </View>
+        </Modal>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  filterIconStyle: {
+    width: 30,
+    height: 30,
+  },
   container: {
     flex: 1,
   },
@@ -394,7 +550,7 @@ const styles = StyleSheet.create({
     // position: 'absolute',
     // right: 10,
     // bottom: 10,
-    marginLeft: 10,
+    // marginLeft: 10,
   },
   callOutContainer: {
     flex: 1,
@@ -407,6 +563,19 @@ const styles = StyleSheet.create({
   iconMapStyle: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 12,
+    },
+    shadowOpacity: 0.58,
+    shadowRadius: 16.0,
+
+    elevation: 24,
   },
   autocompleteContainer: {
     flex: 1,
@@ -415,6 +584,23 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     zIndex: 10000,
+  },
+  topSearchBar: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    paddingBottom: 15,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '#233F6C',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    left: 0,
+    zIndex: 10000,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
