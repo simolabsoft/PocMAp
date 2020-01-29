@@ -124,12 +124,7 @@ class App extends React.Component {
           latitudeDelta: LATITUDE_DELTA,
           longitudeDelta: LONGITUDE_DELTA,
         },
-        region: {
-          latitude: LATITUDE,
-          longitude: LONGITUDE,
-          latitudeDelta: LATITUDE_DELTA,
-          longitudeDelta: LONGITUDE_DELTA,
-        },
+        region: null,
       });
     // this.onRegionChange = this.onRegionChange.bind(this);
   }
@@ -307,23 +302,14 @@ class App extends React.Component {
           zoomEnabled={true}
           showsUserLocation={true}
           mapType={this.state.mapType}
-          initialRegion={{
-            latitude: this.state.region.latitude,
-            longitude: this.state.region.longitude,
-            latitudeDelta: LATITUDE_DELTA,
-            longitudeDelta: LONGITUDE_DELTA,
-          }}
-          region={{
-            latitude: this.state.region.latitude,
-            longitude: this.state.region.longitude,
-            latitudeDelta: LATITUDE_DELTA,
-            longitudeDelta: LONGITUDE_DELTA,
-          }}
+          initialRegion={this.state.region}
+          // region={this.state.region}
           onRegionChange={() => {
             setTimeout(() => {
               this.onRegionChange;
             }, 500);
           }}
+
           // region={{
           //   latitude: this.state.region.latitude,
           //   longitude: this.state.region.longitude,
