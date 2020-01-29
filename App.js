@@ -10,6 +10,8 @@ import React from 'react';
 import MapView, {Marker, Callout, Polyline} from 'react-native-maps';
 // import Dialog, {DialogContent, SlideAnimation} from 'react-native-popup-dialog';
 import Modal from 'react-native-modal';
+import Icon from 'react-native-vector-icons/FontAwesome';
+
 import {
   StyleSheet,
   View,
@@ -32,6 +34,9 @@ const listOfVets = [
   {
     vetName: 'vet1',
     description: 'vet number 1 ready to go ',
+    phone: '06666661',
+    adress: 'Rabat Souissi 21',
+    url: 'www.vet1.com',
     vetAddress: {
       latitude: 33.994541,
       longitude: -6.823654,
@@ -40,6 +45,9 @@ const listOfVets = [
   },
   {
     vetName: 'vet2',
+    phone: '06666661',
+    adress: 'Rabat Souissi 21',
+    url: 'www.vet1.com',
     description: 'vet number 1 ready to go ',
     vetAddress: {
       latitude: 33.991268,
@@ -49,6 +57,9 @@ const listOfVets = [
   },
   {
     vetName: 'vet3',
+    phone: '06666661',
+    adress: 'Merrakch gelize 22',
+    url: 'www.vet2.com',
     description: 'vet number 1 ready to go ',
     vetAddress: {
       latitude: 33.987013,
@@ -59,6 +70,9 @@ const listOfVets = [
   {
     vetName: 'vet4',
     description: 'vet number 1 ready to go ',
+    phone: '06666661',
+    adress: 'paris france 21',
+    url: 'www.vet1.com',
     vetAddress: {
       latitude: 48.862438,
       longitude: 2.289015,
@@ -74,18 +88,15 @@ const listOfVets = [
     },
     vetIcon: require('./assets/catmarker1.png'),
   },
-  {
-    vetName: 'vet6',
-    description: 'vet number 1 ready to go ',
-    vetAddress: {
-      latitude:  32.897083,
-      longitude: -6.914188,
-    },
-    vetIcon: require('./assets/catmarker1.png'),
-  }
-
-  
-
+  // {
+  //   vetName: 'vet6',
+  //   description: 'vet number 1 ready to go ',
+  //   vetAddress: {
+  //     latitude: 32.897083,
+  //     longitude: -6.914188,
+  //   },
+  //   vetIcon: require('./assets/catmarker1.png'),
+  // },
 ];
 
 const ASPECT_RATIO = width / height;
@@ -97,28 +108,29 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.marker = [];
-    this.state = {
-      selectedVet: listOfVets[0],
-      isModalVisible: false,
-      tintNearMeColor: '#233F6C',
-      listOffRoutes: [],
-      query: '',
-      mapType: 'standard',
-      coords: [],
-      showCalloutView: true,
-      userLocation: {
-        latitude: LATITUDE,
-        longitude: LONGITUDE,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-      },
-      region: {
-        latitude: LATITUDE,
-        longitude: LONGITUDE,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-      },
-    };
+    (this.mapView = null),
+      (this.state = {
+        selectedVet: listOfVets[0],
+        isModalVisible: false,
+        tintNearMeColor: '#233F6C',
+        listOffRoutes: [],
+        query: '',
+        mapType: 'standard',
+        coords: [],
+        showCalloutView: true,
+        userLocation: {
+          latitude: LATITUDE,
+          longitude: LONGITUDE,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        },
+        region: {
+          latitude: LATITUDE,
+          longitude: LONGITUDE,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        },
+      });
     // this.onRegionChange = this.onRegionChange.bind(this);
   }
   //getAllRoutesData
@@ -138,7 +150,7 @@ class App extends React.Component {
           TomTomApiKey,
       );
     });
-
+    console.log('list of routes : ', AppCalls);
     Promise.all(AppCalls)
       .then(values => Promise.all(values.map(value => value.json())))
       .then(finalVals => {
@@ -279,6 +291,9 @@ class App extends React.Component {
       {enableHighAccuracy: true, timeout: 2000, maximumAge: 2000},
     );
   };
+  goToInitialRegion() {
+    this.mapView.animateToRegion(this.state.userLocation, 2000);
+  }
   render() {
     return (
       <View style={styles.container}>
@@ -286,6 +301,11 @@ class App extends React.Component {
         <MapView
           // onRegionChange={region => this.onRegionChange(region)}
           style={styles.map}
+          followUserLocation={true}
+          ref={ref => (this.mapView = ref)}
+          // onMapReady={this.goToInitialRegion.bind(this)}
+          zoomEnabled={true}
+          showsUserLocation={true}
           mapType={this.state.mapType}
           initialRegion={{
             latitude: this.state.region.latitude,
@@ -322,7 +342,7 @@ class App extends React.Component {
                 onCalloutPress={() => {
                   this.marker[index].hideCallout();
                   this.getDirectionsTomTom(vet.vetAddress);
-                  this.setState({isModalVisible: true,selectedVet : vet});
+                  this.setState({isModalVisible: true, selectedVet: vet});
                 }}
                 title={vet.vetName}
                 description={'this is vet hello hello'}
@@ -342,7 +362,7 @@ class App extends React.Component {
                           width: 30,
                           height: 30,
                           borderRadius: 15,
-                          backgroundColor: 'green',
+                          // backgroundColor: 'green',
                         }}></Image>
                     </Text>
                     <Text style={{textAlign: 'center', color: 'red'}}>
@@ -402,11 +422,12 @@ class App extends React.Component {
               onChangeText={text => this.setState({text})}
               value={this.state.text}></TextInput>
             <TouchableOpacity style={{marginRight: 10}}>
-              <Image
+              {/* <Image
                 source={require('./assets/searchIcon.png')}
                 resizeMode={'center'}
                 tintColor={'#233F6C'}
-                style={[styles.filterIconStyle]}></Image>
+                style={[styles.filterIconStyle]}></Image> */}
+              <Icon name="search" size={20} color="#233F6C" />
             </TouchableOpacity>
           </View>
           <TouchableOpacity
@@ -414,18 +435,19 @@ class App extends React.Component {
               // backgroundColor: 'red',
               justifyContent: 'center',
               alignItems: 'center',
-              alignContent: 'flex-end',
+              // alignContent: 'flex-end',
               flex: 1,
             }}
             onPress={() => {
               this.setState({isModalVisible: true});
               console.log('hello world');
             }}>
-            <Image
+            {/* <Image
               source={require('./assets/fitlerIcon.png')}
               resizeMode={'center'}
               tintColor={'white'}
-              style={styles.filterIconStyle}></Image>
+              style={styles.filterIconStyle}></Image> */}
+            <Icon name="filter" size={25} color="white" />
           </TouchableOpacity>
         </View>
         <View
@@ -468,10 +490,11 @@ class App extends React.Component {
           <TouchableOpacity
             onPress={() => this.getData(listOfVets)}
             style={styles.iconMapStyle}>
-            <Image
+            {/* <Image
               source={require('./assets/nearMe.png')}
               tintColor={this.state.tintNearMeColor}
-              resizeMode={'contain'}></Image>
+              resizeMode={'contain'}></Image> */}
+            <Icon name="location-arrow" size={25} color="#233F6C" />
           </TouchableOpacity>
         </View>
         {/* <Dialog
@@ -512,6 +535,8 @@ class App extends React.Component {
             // flex: 1,
             height: '40%',
             // borderRadius: 30,
+
+            // borderRadius: 30,
           }}>
           <View
             style={{
@@ -519,10 +544,86 @@ class App extends React.Component {
               width: '100%',
               justifyContent: 'center',
               alignItems: 'center',
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              overflow: 'hidden',
             }}>
-            <View>
-              <Image source={this.state.selectedVet.vetIcon}></Image>
-              <Text>{this.state.selectedVet.vetName}</Text>
+            <View style={styles.closeView}>
+              <TouchableOpacity
+                style={styles.closeBtn}
+                onPress={() => {
+                  this.setState({isModalVisible: false});
+                }}>
+                <Icon name="close" size={20} color={'#233F6C'} />
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                width: '100%',
+                // backgroundColor: 'red',
+                // alignItems: 'center',
+                marginBottom: 10,
+              }}>
+              <View
+                style={{
+                  width: '30%',
+                  alignItems: 'center',
+                  padding: 5,
+                  borderRightWidth: 5,
+                  borderRightColor: '#233F6C',
+                  justifyContent: 'center',
+                }}>
+                <Image source={this.state.selectedVet.vetIcon}></Image>
+                <Text>{this.state.selectedVet.vetName}</Text>
+              </View>
+              <View
+                style={{
+                  width: '60%',
+                  // backgroundColor: 'green',
+                  marginRight: 10,
+                  justifyContent: 'center',
+                }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    // backgroundColor: 'yellow',
+                    // justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingLeft: 5,
+                  }}>
+                  <Icon name="phone" size={20} color={'#233F6C'} />
+                  <Text style={styles.textSmall}>
+                    {this.state.selectedVet.phone}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    // backgroundColor: 'yellow',
+                    // justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingLeft: 5,
+                  }}>
+                  <Icon name="map-marker" size={20} color={'#233F6C'} />
+                  <Text style={styles.textSmall}>
+                    {this.state.selectedVet.adress}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    // backgroundColor: 'yellow',
+                    // justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingLeft: 5,
+                  }}>
+                  <Icon name="flag" size={20} color={'#233F6C'} />
+                  <Text style={styles.textSmall}>
+                    {this.state.selectedVet.url}
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         </Modal>
@@ -561,6 +662,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconMapStyle: {
+    backgroundColor: 'white',
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -602,6 +704,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  closeBtn: {
+    alignSelf: 'flex-end',
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    shadowColor: '#000',
+
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowRadius: 5,
+    shadowOpacity: 1.0,
+    elevation: 11,
+  },
+  closeView: {
+    backgroundColor: 'white',
+    padding: 10,
+    width: '100%',
+    alignItems: 'flex-end',
+  },
+  textSmall: {fontSize: 16, textAlign: 'right', marginLeft: 10},
 });
 
 export default App;
