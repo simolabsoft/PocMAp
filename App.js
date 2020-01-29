@@ -313,8 +313,17 @@ class App extends React.Component {
             latitudeDelta: LATITUDE_DELTA,
             longitudeDelta: LONGITUDE_DELTA,
           }}
-          region={this.state.region}
-          onRegionChangeComplete={this.onRegionChange}
+          region={{
+            latitude: this.state.region.latitude,
+            longitude: this.state.region.longitude,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA,
+          }}
+          onRegionChange={() => {
+            setTimeout(() => {
+              this.onRegionChange;
+            }, 500);
+          }}
           // region={{
           //   latitude: this.state.region.latitude,
           //   longitude: this.state.region.longitude,
