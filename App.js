@@ -33,7 +33,8 @@ const TomTomApiKey = 'QDjLGAH7sMuGO6VUlqtVeUUsGh5OKk8Q';
 const listOfVets = [
   {
     vetName: 'vet1',
-    description: 'vet number 1 ready to go ',
+    description:
+      'Pariatur ut aliquip nostrud consequat ea officia ullamco dolor in proident aliqua. Nulla anim consequat elit cillum ad sit veniam labore ullamco mollit ipsum proident cillum fugiat. Dolore esse sunt veniam laborum ut quis laborum. Deserunt excepteur ullamco non aliqua ipsum veniam sunt. Qui fugiat amet esse cupidatat exercitation minim esse sint elit et laboris.',
     phone: '06666661',
     adress: 'Rabat Souissi 21',
     url: 'www.vet1.com',
@@ -48,7 +49,8 @@ const listOfVets = [
     phone: '06666661',
     adress: 'Rabat Souissi 21',
     url: 'www.vet1.com',
-    description: 'vet number 1 ready to go ',
+    description:
+      'Magna duis mollit quis minim Lorem exercitation nulla nostrud consequat adipisicing dolor culpa elit commodo. Et exercitation do non nisi ipsum mollit nisi id. Exercitation quis irure fugiat incididunt proident pariatur ex nulla commodo est aute. Adipisicing nostrud excepteur consequat qui irure reprehenderit laborum cupidatat do duis anim. Consequat aliqua ad adipisicing proident est commodo ullamco. Ad irure et in sint ex cillum irure officia nostrud.',
     vetAddress: {
       latitude: 33.991268,
       longitude: -6.82806,
@@ -60,7 +62,8 @@ const listOfVets = [
     phone: '06666661',
     adress: 'Merrakch gelize 22',
     url: 'www.vet2.com',
-    description: 'vet number 1 ready to go ',
+    description:
+      'Esse fugiat deserunt enim consectetur tempor non. Lorem mollit nisi cupidatat reprehenderit ullamco nulla in dolore. Amet mollit amet consequat incididunt nisi consectetur et sint. Et ut veniam nisi esse minim minim. Reprehenderit magna ea sit ad cupidatat amet ullamco laboris consectetur dolore. Ex nostrud consectetur labore cillum.',
     vetAddress: {
       latitude: 33.987013,
       longitude: -6.828234,
@@ -69,7 +72,8 @@ const listOfVets = [
   },
   {
     vetName: 'vet4',
-    description: 'vet number 1 ready to go ',
+    description:
+      '&Lorem mollit cillum dolor nisi. Velit et do ex cillum tempor do nulla mollit laboris non dolore. Velit incididunt velit culpa esse cillum incididunt voluptate minim esse. Voluptate proident deserunt proident dolore. Nulla eiusmod culpa sit exercitation elit pariatur pariatur cupidatat velit excepteur quis. Dolor nisi consequat veniam id eu ea.',
     phone: '06666661',
     adress: 'paris france 21',
     url: 'www.vet1.com',
@@ -81,7 +85,8 @@ const listOfVets = [
   },
   {
     vetName: 'vet5',
-    description: 'vet number 1 ready to go ',
+    description:
+      'Est est laborum anim id ipsum eu deserunt. Commodo id elit irure fugiat officia deserunt est eu. Lorem qui nisi cillum do adipisicing labore dolore exercitation veniam aliquip.',
     vetAddress: {
       latitude: 31.624335,
       longitude: -7.993801,
@@ -170,6 +175,7 @@ class App extends React.Component {
       (iMax, x, i, arr) => (x < arr[iMax] ? i : iMax),
       0,
     );
+    this.mapView.animateToRegion(this.state.userLocation, 1000);
     this.setState({
       coords: listOffRoutes[indexOfMaxValue].routes[0].legs[0].points,
     });
