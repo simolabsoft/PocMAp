@@ -11,7 +11,7 @@ import MapView, {Marker, Callout, Polyline} from 'react-native-maps';
 // import Dialog, {DialogContent, SlideAnimation} from 'react-native-popup-dialog';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/FontAwesome';
-
+import Autocomplete from 'react-native-autocomplete-input';
 import {
   StyleSheet,
   View,
@@ -21,6 +21,7 @@ import {
   Image,
   StatusBar,
   TextInput,
+  ScrollView,
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 const {width, height} = Dimensions.get('window');
@@ -28,6 +29,7 @@ const origin = {latitude: 33.994541, longitude: -6.823654};
 const destination = {latitude: 33.991268, longitude: -6.82806};
 const GOOGLE_MAPS_APIKEY = 'AIzaSyBayo9X5GPbijh81gObednUdrQFYXiqB0E';
 const TomTomApiKey = 'QDjLGAH7sMuGO6VUlqtVeUUsGh5OKk8Q';
+const vetMarker = require('./assets/catmarker1.png');
 // vet Mocks
 
 const listOfVets = [
@@ -42,7 +44,7 @@ const listOfVets = [
       latitude: 33.994541,
       longitude: -6.823654,
     },
-    vetIcon: require('./assets/catmarker1.png'),
+    vetIcon: require('./assets/vet.png'),
   },
   {
     vetName: 'vet2',
@@ -55,7 +57,7 @@ const listOfVets = [
       latitude: 33.991268,
       longitude: -6.82806,
     },
-    vetIcon: require('./assets/catmarker1.png'),
+    vetIcon: require('./assets/vet1.jpg'),
   },
   {
     vetName: 'vet3',
@@ -68,7 +70,7 @@ const listOfVets = [
       latitude: 33.987013,
       longitude: -6.828234,
     },
-    vetIcon: require('./assets/catmarker1.png'),
+    vetIcon: require('./assets/vet2.jpg'),
   },
   {
     vetName: 'vet4',
@@ -81,17 +83,20 @@ const listOfVets = [
       latitude: 48.862438,
       longitude: 2.289015,
     },
-    vetIcon: require('./assets/catmarker1.png'),
+    vetIcon: require('./assets/vet3.jpg'),
   },
   {
     vetName: 'vet5',
+    phone: '06666661',
+    adress: 'merakch 22',
+    url: 'www.vet5.com',
     description:
       'Est est laborum anim id ipsum eu deserunt. Commodo id elit irure fugiat officia deserunt est eu. Lorem qui nisi cillum do adipisicing labore dolore exercitation veniam aliquip.',
     vetAddress: {
       latitude: 31.624335,
       longitude: -7.993801,
     },
-    vetIcon: require('./assets/catmarker1.png'),
+    vetIcon: require('./assets/dogmarker1.png'),
   },
   // {
   //   vetName: 'vet6',
@@ -109,12 +114,16 @@ const LATITUDE = 37.78825;
 const LONGITUDE = -122.4324;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+let SearchedVetList = [];
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.marker = [];
     (this.mapView = null),
       (this.state = {
+        searchText: '',
+
+        showSearchResult: false,
         selectedVet: listOfVets[0],
         isModalVisible: false,
         tintNearMeColor: '#233F6C',
@@ -133,6 +142,94 @@ class App extends React.Component {
       });
     // this.onRegionChange = this.onRegionChange.bind(this);
   }
+
+  renderListOfSeachedVet = ResultList => {
+    if (ResultList.length == 0) {
+      return (
+        <View style={{height: 100, backgroundColor: 'white'}}>
+          <Text style={{fontSize: 18, color: '#333'}}>aucune résultat</Text>
+        </View>
+      );
+    } else
+      return (
+        <ScrollView>
+          {ResultList.map((item, index) => {
+            return (
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  width: '100%',
+                  // backgroundColor: 'red',
+                  // alignItems: 'center',
+                  marginBottom: 20,
+                  borderBottomWidth: 2,
+                  borderBottomColor: '#233F6C',
+                }}>
+                <View
+                  style={{
+                    width: '30%',
+                    alignItems: 'center',
+                    padding: 5,
+                    borderRightWidth: 5,
+                    borderRightColor: '#233F6C',
+                    justifyContent: 'center',
+                  }}>
+                  <Image
+                    source={item.vetIcon}
+                    resizeMode={'cover'}
+                    style={{
+                      width: 60,
+                      height: 60,
+                    }}></Image>
+                  <Text>{item.vetName}</Text>
+                </View>
+                <View
+                  style={{
+                    width: '60%',
+                    // backgroundColor: 'green',
+                    marginRight: 10,
+                    justifyContent: 'center',
+                  }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      // backgroundColor: 'yellow',
+                      // justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingLeft: 5,
+                    }}>
+                    <Icon name="phone" size={20} color={'#233F6C'} />
+                    <Text style={styles.textSmall}>{item.phone}</Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      // backgroundColor: 'yellow',
+                      // justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingLeft: 5,
+                    }}>
+                    <Icon name="map-marker" size={20} color={'#233F6C'} />
+                    <Text style={styles.textSmall}>{item.adress}</Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      // backgroundColor: 'yellow',
+                      // justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingLeft: 5,
+                    }}>
+                    <Icon name="flag" size={20} color={'#233F6C'} />
+                    <Text style={styles.textSmall}>{item.url}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      );
+  };
   //getAllRoutesData
   getData = listOfVets => {
     let AppCalls = [];
@@ -175,7 +272,11 @@ class App extends React.Component {
       (iMax, x, i, arr) => (x < arr[iMax] ? i : iMax),
       0,
     );
-    this.mapView.animateToRegion(this.state.userLocation, 1000);
+    let initialRegion = Object.assign({}, this.state.userLocation);
+    initialRegion['latitudeDelta'] = 0.005;
+    initialRegion['longitudeDelta'] = 0.005;
+    this.mapView.animateToRegion(initialRegion, 2000);
+    // this.mapView.animateToRegion(this.state.userLocation, 1000);
     this.setState({
       coords: listOffRoutes[indexOfMaxValue].routes[0].legs[0].points,
     });
@@ -295,7 +396,35 @@ class App extends React.Component {
   goToInitialRegion() {
     this.mapView.animateToRegion(this.state.userLocation, 2000);
   }
+  findVet = query => {
+    if (query === '') {
+      return [];
+    }
+    const regex = new RegExp(`${query.trim()}`, 'i');
+    console.log('catch : ', query);
+    console.log(listOfVets.filter(vet => vet.vetName.search(regex) >= 0));
+    return listOfVets.filter(vet => vet.vetName.search(regex) >= 0);
+  };
+  filterSearch = text => {
+    if (text === '') return [];
+    else {
+      const regex = new RegExp(`${text.trim()}`, 'i');
+      console.log('catch : ', text);
+      console.log(listOfVets.filter(vet => vet.vetName.search(regex) >= 0));
+      SearchedVetList = listOfVets.filter(
+        vet =>
+          vet.vetName.search(regex) >= 0 ||
+          vet.adress.search(regex) >= 0 ||
+          vet.phone.search(regex) >= 0 ||
+          vet.url.search(regex) >= 0,
+      );
+    }
+  };
   render() {
+    const {query} = this.state;
+    const Vets = this.findVet(query);
+    const comp = (a, b) => a.toLowerCase().trim() === b.toLowerCase().trim();
+
     return (
       <View style={styles.container}>
         <StatusBar backgroundColor="#233F6D" barStyle="light-content" />
@@ -347,7 +476,7 @@ class App extends React.Component {
                 }}
                 title={vet.vetName}
                 description={'this is vet hello hello'}
-                icon={vet.vetIcon}>
+                icon={vetMarker}>
                 <Callout>
                   <View style={styles.callOutContainer}>
                     <Text
@@ -420,9 +549,39 @@ class App extends React.Component {
             <TextInput
               style={{width: '80%', color: '#233F6C'}}
               placeholder="Chercher un vétérinaire..."
-              onChangeText={text => this.setState({text})}
+              onChangeText={text => this.setState({searchText: text})}
               value={this.state.text}></TextInput>
-            <TouchableOpacity style={{marginRight: 10}}>
+            {/* <View style={styles.autocompleteContainer}>
+              <Autocomplete
+                autoCapitalize="none"
+                autoCorrect={false}
+                data={Vets}
+                inputContainerStyle={{backgroundColor: 'yellow'}}
+                listContainerStyle = {{backgroundColor : "black"}}
+                containerStyle={{backgroundColor: 'red', zIndex: 1}}
+                defaultValue={query}
+                placeholder="Chercher un vétérinaire..."
+                onChangeText={text => this.setState({query: text})}
+                renderItem={({item, i}) => (
+                  <TouchableOpacity
+                    onPress={() => this.setState({query: item})}
+                    style={{
+                      height: 30,
+                      backgroundColor: 'green',
+                      flex: 1,
+                      width: 100,
+                    }}>
+                    <Text>{item.vetName}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View> */}
+            <TouchableOpacity
+              style={{marginRight: 10}}
+              onPress={() => {
+                this.setState({isModalVisible: true, showSearchResult: true});
+                this.filterSearch(this.state.searchText);
+              }}>
               {/* <Image
                 source={require('./assets/searchIcon.png')}
                 resizeMode={'center'}
@@ -558,74 +717,84 @@ class App extends React.Component {
                 <Icon name="close" size={20} color={'#233F6C'} />
               </TouchableOpacity>
             </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                width: '100%',
-                // backgroundColor: 'red',
-                // alignItems: 'center',
-                marginBottom: 10,
-              }}>
+            {this.state.showSearchResult &&
+              this.renderListOfSeachedVet(SearchedVetList)}
+            {!this.state.showSearchResult && (
               <View
                 style={{
-                  width: '30%',
-                  alignItems: 'center',
-                  padding: 5,
-                  borderRightWidth: 5,
-                  borderRightColor: '#233F6C',
-                  justifyContent: 'center',
-                }}>
-                <Image source={this.state.selectedVet.vetIcon}></Image>
-                <Text>{this.state.selectedVet.vetName}</Text>
-              </View>
-              <View
-                style={{
-                  width: '60%',
-                  // backgroundColor: 'green',
-                  marginRight: 10,
-                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  width: '100%',
+                  // backgroundColor: 'red',
+                  // alignItems: 'center',
+                  marginBottom: 10,
                 }}>
                 <View
                   style={{
-                    flexDirection: 'row',
-                    // backgroundColor: 'yellow',
-                    // justifyContent: 'space-between',
+                    width: '30%',
                     alignItems: 'center',
-                    paddingLeft: 5,
+                    padding: 5,
+                    borderRightWidth: 5,
+                    borderRightColor: '#233F6C',
+                    justifyContent: 'center',
                   }}>
-                  <Icon name="phone" size={20} color={'#233F6C'} />
-                  <Text style={styles.textSmall}>
-                    {this.state.selectedVet.phone}
-                  </Text>
+                  <Image
+                    source={this.state.selectedVet.vetIcon}
+                    resizeMode={'cover'}
+                    style={{
+                      width: 60,
+                      height: 60,
+                    }}></Image>
+                  <Text>{this.state.selectedVet.vetName}</Text>
                 </View>
                 <View
                   style={{
-                    flexDirection: 'row',
-                    // backgroundColor: 'yellow',
-                    // justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingLeft: 5,
+                    width: '60%',
+                    // backgroundColor: 'green',
+                    marginRight: 10,
+                    justifyContent: 'center',
                   }}>
-                  <Icon name="map-marker" size={20} color={'#233F6C'} />
-                  <Text style={styles.textSmall}>
-                    {this.state.selectedVet.adress}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    // backgroundColor: 'yellow',
-                    // justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingLeft: 5,
-                  }}>
-                  <Icon name="flag" size={20} color={'#233F6C'} />
-                  <Text style={styles.textSmall}>
-                    {this.state.selectedVet.url}
-                  </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      // backgroundColor: 'yellow',
+                      // justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingLeft: 5,
+                    }}>
+                    <Icon name="phone" size={20} color={'#233F6C'} />
+                    <Text style={styles.textSmall}>
+                      {this.state.selectedVet.phone}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      // backgroundColor: 'yellow',
+                      // justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingLeft: 5,
+                    }}>
+                    <Icon name="map-marker" size={20} color={'#233F6C'} />
+                    <Text style={styles.textSmall}>
+                      {this.state.selectedVet.adress}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      // backgroundColor: 'yellow',
+                      // justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingLeft: 5,
+                    }}>
+                    <Icon name="flag" size={20} color={'#233F6C'} />
+                    <Text style={styles.textSmall}>
+                      {this.state.selectedVet.url}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
+            )}
           </View>
         </Modal>
       </View>
@@ -686,7 +855,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     top: 0,
-    zIndex: 10000,
+    zIndex: 1,
   },
   topSearchBar: {
     paddingHorizontal: 10,
@@ -701,7 +870,7 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     left: 0,
-    zIndex: 10000,
+    zIndex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
