@@ -472,7 +472,11 @@ class App extends React.Component {
                 onCalloutPress={() => {
                   this.marker[index].hideCallout();
                   this.getDirectionsTomTom(vet.vetAddress);
-                  this.setState({isModalVisible: true, selectedVet: vet});
+                  this.setState({
+                    isModalVisible: true,
+                    selectedVet: vet,
+                    showSearchResult: false,
+                  });
                 }}
                 title={vet.vetName}
                 description={'this is vet hello hello'}
@@ -578,6 +582,7 @@ class App extends React.Component {
             </View> */}
             <TouchableOpacity
               style={{marginRight: 10}}
+              disabled={this.state.searchText.length == 0}
               onPress={() => {
                 this.setState({isModalVisible: true, showSearchResult: true});
                 this.filterSearch(this.state.searchText);
