@@ -164,6 +164,17 @@ class App extends React.Component {
                   marginBottom: 20,
                   borderBottomWidth: 2,
                   borderBottomColor: '#233F6C',
+                }}
+                onPress={() => {
+                  this.setState({isModalVisible: false});
+                  let region = {
+                    latitude: item.vetAddress.latitude,
+                    longitude: item.vetAddress.longitude,
+                    latitudeDelta: 0.005,
+                    longitudeDelta: 0.005,
+                  };
+
+                  this.mapView.animateToRegion(region, 1000);
                 }}>
                 <View
                   style={{
@@ -454,8 +465,7 @@ class App extends React.Component {
         >
           <Marker
             coordinate={this.state.userLocation}
-            title={'my place'}
-            description={'hello world hello word hello world'}
+            title={'Votre Position'}
             image={require('./assets/marker.png')}
           />
           {listOfVets.map((vet, index) => {
@@ -495,14 +505,13 @@ class App extends React.Component {
                         style={{
                           width: 30,
                           height: 30,
-                          borderRadius: 15,
+
                           // backgroundColor: 'green',
                         }}></Image>
                     </Text>
                     <Text style={{textAlign: 'center', color: 'red'}}>
                       {vet.vetName}
                     </Text>
-                    <Text style={{textAlign: 'center'}}>{vet.description}</Text>
                   </View>
                 </Callout>
               </Marker>
@@ -830,7 +839,7 @@ const styles = StyleSheet.create({
   },
   callOutContainer: {
     flex: 1,
-    height: 100,
+    height: 70,
     width: 100,
     // backgroundColor: 'red',
     // justifyContent: 'center',

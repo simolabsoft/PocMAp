@@ -40,6 +40,8 @@ target 'PocMap' do
 
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
+  pod 'MerryPhotoViewer', :path => '../node_modules/@merryjs/photo-viewer'
+
   target 'PocMapTests' do
     inherit! :search_paths
     # Pods for testing

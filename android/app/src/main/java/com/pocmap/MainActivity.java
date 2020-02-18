@@ -1,7 +1,7 @@
 package com.pocmap;
 
 import com.facebook.react.ReactActivity;
-
+import com.merryjs.PhotoViewer.MerryPhotoViewPackage;
 public class MainActivity extends ReactActivity {
 
   /**
