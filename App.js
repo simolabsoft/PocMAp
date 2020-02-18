@@ -16,12 +16,14 @@ import {
   StyleSheet,
   View,
   Text,
+  PermissionsAndroid,
   Dimensions,
   TouchableOpacity,
   Image,
   StatusBar,
   TextInput,
   ScrollView,
+  Platform,
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 const {width, height} = Dimensions.get('window');
@@ -122,7 +124,7 @@ class App extends React.Component {
     (this.mapView = null),
       (this.state = {
         searchText: '',
-
+        showFilterView: false,
         showSearchResult: false,
         selectedVet: listOfVets[0],
         isModalVisible: false,
@@ -142,6 +144,104 @@ class App extends React.Component {
       });
     // this.onRegionChange = this.onRegionChange.bind(this);
   }
+  // request permissin location
+  async requestLocationPermission() {
+    const chckLocationPermission = PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+    if (chckLocationPermission === PermissionsAndroid.RESULTS.GRANTED) {
+      Geolocation.getCurrentPosition(
+        position => {
+          const initialPosition = JSON.stringify(position);
+          // this.setState({region: position.coords});
+          console.log(initialPosition);
+          console.log('hello1', initialPosition);
+          this.setState({
+            userLocation: {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              latitudeDelta: 0.04,
+              longitudeDelta: 0.05,
+            },
+            region: {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              latitudeDelta: 0.04,
+              longitudeDelta: 0.05,
+            },
+          });
+        },
+        error => {
+          this.setState({error: error.message});
+          console.log(error);
+        },
+        {enableHighAccuracy: true, timeout: 2000, maximumAge: 2000},
+      );
+    } else {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Cool Location App required Location permission',
+            message:
+              'We required Location permission in order to get device location ' +
+              'Please grant us.',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          Geolocation.getCurrentPosition(
+            position => {
+              const initialPosition = JSON.stringify(position);
+              // this.setState({region: position.coords});
+              console.log(initialPosition);
+              console.log('hello1', initialPosition);
+              this.setState({
+                userLocation: {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  latitudeDelta: 0.04,
+                  longitudeDelta: 0.05,
+                },
+                region: {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  latitudeDelta: 0.04,
+                  longitudeDelta: 0.05,
+                },
+              });
+            },
+            error => {
+              this.setState({error: error.message});
+              console.log(error);
+            },
+            {enableHighAccuracy: true, timeout: 2000, maximumAge: 2000},
+          );
+        } else {
+          alert("You don't have access for the location");
+        }
+      } catch (err) {
+        alert(err);
+      }
+    }
+  }
+
+  renderFiltreView = () => {
+    return (
+      <View
+        style={{
+          // flexDirection: 'row',
+          width: '100%',
+          // backgroundColor: 'red',
+          alignItems: 'center',
+          marginBottom: 10,
+          justifyContent: 'center',
+        }}>
+        <Text style={{fontSize: 18, color: 'Blue', padding: 10}}>
+          Filter Params : to validate
+        </Text>
+      </View>
+    );
+  };
 
   renderListOfSeachedVet = ResultList => {
     if (ResultList.length == 0) {
@@ -152,7 +252,7 @@ class App extends React.Component {
       );
     } else
       return (
-        <ScrollView>
+        <ScrollView style={{width: '100%'}}>
           {ResultList.map((item, index) => {
             return (
               <TouchableOpacity
@@ -175,6 +275,12 @@ class App extends React.Component {
                   };
 
                   this.mapView.animateToRegion(region, 1000);
+                  // this.getDirectionsTomTom(item.vetAddress);
+                  // this.setState({
+                  //   isModalVisible: false,
+                  //   selectedVet: item,
+                  //   showSearchResult: false,
+                  // });
                 }}>
                 <View
                   style={{
@@ -268,6 +374,7 @@ class App extends React.Component {
             this.compareAllRoutes(this.state.listOffRoutes);
           },
         );
+        console.log('user location : ', this.state.userLocation);
         console.log('list of routes : ', finalVals);
       });
   };
@@ -296,6 +403,7 @@ class App extends React.Component {
   };
   // fetch directions and decode polylines
   async getDirections(startLoc, destinationLoc) {
+    console.log('get Directions : ', startLoc);
     try {
       let resp = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${startLoc}&destination=${destinationLoc}`,
@@ -317,30 +425,10 @@ class App extends React.Component {
     }
   }
   async componentDidMount() {
-    Geolocation.getCurrentPosition(
-      position => {
-        const initialPosition = JSON.stringify(position);
-        // this.setState({region: position.coords});
-        // console.log(initialPosition);
-        console.log('hello', initialPosition);
-        this.setState({
-          userLocation: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            latitudeDelta: 0.04,
-            longitudeDelta: 0.05,
-          },
-          region: {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            latitudeDelta: 0.04,
-            longitudeDelta: 0.05,
-          },
-        });
-      },
-      error => this.setState({error: error.message}),
-      {enableHighAccuracy: true, timeout: 2000, maximumAge: 2000},
-    );
+    if (Platform.OS === 'android') {
+      this.requestLocationPermission();
+    }
+
     // this.getDirections('40.1884979, 29.061018', '41.0082,28.9784');
   }
   async getDirectionsTomTom(dist) {
@@ -613,7 +701,7 @@ class App extends React.Component {
               flex: 1,
             }}
             onPress={() => {
-              this.setState({isModalVisible: true});
+              this.setState({isModalVisible: true, showFilterView: true});
               console.log('hello world');
             }}>
             {/* <Image
@@ -699,7 +787,7 @@ class App extends React.Component {
           isVisible={this.state.isModalVisible}
           useNativeDriver={true}
           onBackdropPress={() => {
-            this.setState({isModalVisible: false});
+            this.setState({isModalVisible: false, showFilterView: false});
           }}
           style={{
             justifyContent: 'flex-end',
@@ -707,7 +795,8 @@ class App extends React.Component {
             padding: 0,
             alignItems: 'center',
             // flex: 1,
-            height: '40%',
+            // height: '30%',
+            marginTop: 30,
             // borderRadius: 30,
 
             // borderRadius: 30,
@@ -726,14 +815,15 @@ class App extends React.Component {
               <TouchableOpacity
                 style={styles.closeBtn}
                 onPress={() => {
-                  this.setState({isModalVisible: false});
+                  this.setState({isModalVisible: false, showFilterView: false});
                 }}>
                 <Icon name="close" size={20} color={'#233F6C'} />
               </TouchableOpacity>
             </View>
             {this.state.showSearchResult &&
               this.renderListOfSeachedVet(SearchedVetList)}
-            {!this.state.showSearchResult && (
+            {this.state.showFilterView && this.renderFiltreView()}
+            {!this.state.showSearchResult && !this.state.showFilterView && (
               <View
                 style={{
                   flexDirection: 'row',
@@ -889,8 +979,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeBtn: {
-    alignSelf: 'flex-end',
-    marginRight: 10,
+    // alignSelf: 'flex-end',
+    marginRight: 5,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
@@ -912,6 +1002,7 @@ const styles = StyleSheet.create({
     padding: 10,
     width: '100%',
     alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   textSmall: {fontSize: 16, textAlign: 'right', marginLeft: 10},
 });
